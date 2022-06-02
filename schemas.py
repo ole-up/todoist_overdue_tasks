@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import TypedDict, List
 
 
 @dataclass
@@ -7,3 +8,15 @@ class FormattedTask:
     priority: int
     due_date: str
     url: str
+
+
+@dataclass
+class ProjectTasks:
+    project_id: int
+    tasks: List[FormattedTask]
+
+
+@dataclass
+class AssigneeTasks(TypedDict):
+    assignee: int
+    projects: List[ProjectTasks]
