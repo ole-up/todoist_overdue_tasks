@@ -18,5 +18,5 @@ class ProjectTasks:
 
 @dataclass
 class AssigneeTasks(TypedDict):
-    assignee: int
+    assignee_id: int
     projects: List[ProjectTasks]
