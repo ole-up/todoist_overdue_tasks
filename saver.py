@@ -1,9 +1,8 @@
 from pathlib import Path, WindowsPath
 from typing import Protocol, List
 
-import config
-import html_template
-from todoist_api_service import get_project_name
+from jinja2 import Environment, FileSystemLoader
+
 from schemas import AssigneeTasks
 
 
@@ -21,21 +20,12 @@ class HTMLFileTasksStorage(TasksStorage):
         self._file = file
 
     def save(self, tasks: List[AssigneeTasks]) -> None:
-        with open(self._file, 'w', encoding='utf-8') as f:
-            f.write(html_template.BODY_START)
-            for assignee in tasks:
-                if assignee.projects:
-                    f.write(f'<h2 style="color: #008000">Исполнитель: {config.ASSIGNEES[assignee.assignee_id]}</h2>')
-                    for project in assignee.projects:
-                        f.write(f'<h3 style="color: #DC143C">Проект: {get_project_name(project.project_id)}</h3>')
-                        f.write(html_template.TABLE_HEADER)
-                        for task in project.tasks:
-                            f.write(
-                                f'<tr><td style="text-align: left; width: 300px">{task.content}</td><td style="text-align: center; width: 100px">{task.due_date}</td><td style="text-align: center; width: 100px">{task.priority}</td><td style="width: 300px;"><a href="{task.url}">{task.url}</a></td></tr>')
-                        f.write(html_template.TABEL_END_TAG)
-                    f.write('<br><hr><br>')
-            f.write(html_template.BODY_END)
-
+        env = Environment(loader=FileSystemLoader('templates'))
+        template = env.get_template('report.html')
+        output_from_parsed_template = template.render(assignees_tasks_list=tasks)
+        with open(self._file, "w", encoding='utf-8') as f:
+            f.write(output_from_parsed_template)
+        
 
 def save_tasks(tasks, storage: TasksStorage):
     """Saves weather in the storage"""
