@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 def send_email(html_file, sender, receiver, subject, smtp_server, smtp_port, smtp_password):
     """Send html file to email"""
     message = MIMEMultipart("alternative")
-    with open(html_file, 'r') as f:
+    with open(html_file, 'r', encoding='utf-8') as f:
         html_message = f.read()
     mime_message = MIMEText(html_message, "html")
     message.attach(mime_message)
