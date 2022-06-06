@@ -3,6 +3,8 @@ from typing import List
 
 from todoist_api_python.models import Task
 
+import config
+import todoist_api_service
 from schemas import FormattedTask, ProjectTasks, AssigneeTasks
 
 
@@ -36,13 +38,18 @@ def _add_task_in_assignees_tasks(formatted_task: FormattedTask, assignee_id, pro
                                  assignees_tasks: List[AssigneeTasks]) -> List[AssigneeTasks]:
     """Adds task in assignee's tasks list"""
     assignees_tasks_keys = _get_assignee_list(assignees_tasks)
-    if assignee_id and assignee_id not in assignees_tasks_keys:
-        project_tasks = ProjectTasks(project_id=project_id,
+    if assignee_id:
+        try:
+            assignee_name = config.ASSIGNEES[assignee_id]
+        except KeyError:
+            assignee_name = f'Неизвестный исполнитель {assignee_id}'
+        if assignee_name not in assignees_tasks_keys:
+            project_tasks = ProjectTasks(project_name=todoist_api_service.get_project_name(project_id),
                                      tasks=[formatted_task])
-        assignee_tasks = AssigneeTasks(assignee_id=assignee_id,
+            assignee_tasks = AssigneeTasks(assignee_name=assignee_name,
                                        projects=[project_tasks])
-        assignees_tasks.append(assignee_tasks)
-        return assignees_tasks
+            assignees_tasks.append(assignee_tasks)
+            return assignees_tasks
     else:
         return _add_task_in_project(formatted_task=formatted_task,
                                     assignee_id=assignee_id,
@@ -53,10 +60,15 @@ def _add_task_in_assignees_tasks(formatted_task: FormattedTask, assignee_id, pro
 def _add_task_in_project(formatted_task: FormattedTask, assignee_id, project_id,
                          assignees_tasks: List[AssigneeTasks]) -> List[AssigneeTasks]:
     """Adds task in project's tasks list"""
+    try:
+        assignee_name = config.ASSIGNEES[assignee_id]
+    except KeyError:
+        assignee_name = f'Неизвестный исполнитель {assignee_id}'
+    project_name = todoist_api_service.get_project_name(project_id)
     for assignee_tasks in assignees_tasks:
-        if assignee_tasks.assignee_id == assignee_id:
+        if assignee_tasks.assignee_name == assignee_name:
             for project in assignee_tasks.projects:
-                if project.project_id == project_id:
+                if project.project_name == project_name:
                     project.tasks.append(formatted_task)
                     break
                 else:
@@ -75,7 +87,7 @@ def _fortmating_Task(task: Task) -> FormattedTask:
 
 def _get_assignee_list(assignees_tasks_list: List[AssigneeTasks]):
     """Returns list of assignee_id from assignee's tasks list"""
-    return [assignee.assignee_id for assignee in assignees_tasks_list]
+    return [assignee.assignee_name for assignee in assignees_tasks_list]
 
 
 def _sort_key(formatted_task: FormattedTask):

@@ -12,11 +12,11 @@ class FormattedTask:
 
 @dataclass
 class ProjectTasks:
-    project_id: int
+    project_name: str
     tasks: List[FormattedTask]
 
 
 @dataclass
 class AssigneeTasks:
-    assignee_id: int
+    assignee_name: str
     projects: List[ProjectTasks]
