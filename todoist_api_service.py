@@ -1,11 +1,12 @@
 from todoist_api_python.api import TodoistAPI
+from todoist_api_python.models import Task
 
 import config
 
 api = TodoistAPI(config.API_TOKEN)
 
 
-def get_tasks():
+def get_tasks() -> list[Task]:
     """Returns tasks list"""
     try:
         tasks = api.get_tasks()
