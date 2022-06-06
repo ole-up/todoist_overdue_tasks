@@ -3,6 +3,7 @@ from typing import Protocol, List
 
 from jinja2 import Environment, FileSystemLoader
 
+from exceptions import SaverError
 from schemas import AssigneeTasks
 
 
@@ -25,8 +26,11 @@ class HTMLFileTasksStorage(TasksStorage):
         output_from_parsed_template = template.render(assignees_tasks_list=tasks)
         with open(self._file, "w", encoding='utf-8') as f:
             f.write(output_from_parsed_template)
-        
 
-def save_tasks(tasks, storage: TasksStorage):
-    """Saves weather in the storage"""
-    storage.save(tasks)
+
+def save_tasks(tasks, storage: TasksStorage) -> None:
+    """Saves tasks in the storage"""
+    try:
+        storage.save(tasks)
+    except Exception:
+        raise SaverError

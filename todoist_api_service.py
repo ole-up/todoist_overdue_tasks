@@ -2,6 +2,7 @@ from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Task
 
 import config
+from exceptions import ApiServiceError
 
 api = TodoistAPI(config.API_TOKEN)
 
@@ -12,7 +13,7 @@ def get_tasks() -> list[Task]:
         tasks = api.get_tasks()
         return tasks
     except Exception as error:
-        print(error)
+        raise ApiServiceError
 
 
 def get_project_name(project_id):

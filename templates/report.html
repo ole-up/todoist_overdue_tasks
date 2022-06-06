@@ -23,7 +23,7 @@
 <hr>
 <br>
 {% for assignee in assignees_tasks_list %}
-<h2 style="color: #008000">Исполнитель: {{ assignee.assignee_name }}</h2>
+<h2 style="color: #008000">Ответственный: {{ assignee.assignee_name }}</h2>
 {% for project in assignee.projects %}
 <h3 style="color: #DC143C">Проект: {{ project.project_name }}</h3>
 <table>

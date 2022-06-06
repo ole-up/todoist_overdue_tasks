@@ -5,14 +5,19 @@ from todoist_api_python.models import Task
 
 import config
 import todoist_api_service
+from exceptions import FormattingError
 from schemas import FormattedTask, ProjectTasks, AssigneeTasks
 
 
 def get_formatted_tasks(tasks: List[Task]) -> List[AssigneeTasks]:
     """Returns overdue tasks grouped by assignee and projects and sorted by priority """
-    overdue_tasks = _get_overdue_tasks(tasks)
-    grouping_tasks = _grouping_tasks(overdue_tasks)
-    return _sorting_tasks(grouping_tasks)
+    try:
+        overdue_tasks = _get_overdue_tasks(tasks)
+        grouped_tasks = _grouping_tasks(overdue_tasks)
+        sorted_tasks = _sorting_tasks(grouped_tasks)
+        return sorted_tasks
+    except Exception:
+        raise FormattingError
 
 
 def _get_overdue_tasks(tasks: List[Task], date_of_overdue: datetime = datetime.today()) -> List[Task]:
@@ -42,12 +47,12 @@ def _add_task_in_assignees_tasks(formatted_task: FormattedTask, assignee_id, pro
         try:
             assignee_name = config.ASSIGNEES[assignee_id]
         except KeyError:
-            assignee_name = f'Неизвестный исполнитель {assignee_id}'
+            assignee_name = f'Неизвестный ответственный {assignee_id}'
         if assignee_name not in assignees_tasks_keys:
             project_tasks = ProjectTasks(project_name=todoist_api_service.get_project_name(project_id),
-                                     tasks=[formatted_task])
+                                         tasks=[formatted_task])
             assignee_tasks = AssigneeTasks(assignee_name=assignee_name,
-                                       projects=[project_tasks])
+                                           projects=[project_tasks])
             assignees_tasks.append(assignee_tasks)
             return assignees_tasks
     else:
@@ -85,7 +90,7 @@ def _fortmating_Task(task: Task) -> FormattedTask:
                          url=task.url)
 
 
-def _get_assignee_list(assignees_tasks_list: List[AssigneeTasks]):
+def _get_assignee_list(assignees_tasks_list: List[AssigneeTasks]) -> List[str]:
     """Returns list of assignee_id from assignee's tasks list"""
     return [assignee.assignee_name for assignee in assignees_tasks_list]
 
@@ -95,7 +100,7 @@ def _sort_key(formatted_task: FormattedTask):
     return formatted_task.priority
 
 
-def _sorting_tasks(assignees_tasks_list: List[AssigneeTasks]):
+def _sorting_tasks(assignees_tasks_list: List[AssigneeTasks]) -> List[AssigneeTasks]:
     """Sort tasks by priority"""
     for assignee in assignees_tasks_list:
         if assignee.projects:
