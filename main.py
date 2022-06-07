@@ -9,6 +9,7 @@ from todoist_api_service import get_tasks
 
 
 def main():
+    global tasks, formatted_tasks
     try:
         tasks = get_tasks()
     except ApiServiceError:
