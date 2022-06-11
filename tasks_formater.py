@@ -26,9 +26,12 @@ def _get_overdue_tasks(tasks: List[Task], date_of_overdue: datetime = datetime.t
     return list(filter(lambda x: x.due and datetime.strptime(x.due.date, '%Y-%m-%d') < date_of_overdue, tasks))
 
 
-def _get_tasks_with_assignee(tasks: List[Task]) -> List[Task]:
+def _get_tasks_with_assignee(tasks: List[Task], exclude_assignee=True) -> List[Task]:
     """Returns task with assignee"""
-    return list(filter(lambda x: x.assignee, tasks))
+    if exclude_assignee:
+        return list(filter(lambda x: x.assignee and x.assignee not in config.EXCLUDE_ASSIGNEES, tasks))
+    else:
+        return list(filter(lambda x: x.assignee, tasks))
 
 
 def _grouping_tasks(tasks: List[Task]) -> List[AssigneeTasks]:

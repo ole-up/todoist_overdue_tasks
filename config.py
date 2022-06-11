@@ -5,6 +5,7 @@ ASSIGNEES = {
     6451839: 'Сидоров',
     None: 'Не назначен'
 }
+EXCLUDE_ASSIGNEES = [6451839, None]
 SENDER_EMAIL = 'sender@mail5.ru'
 RECEIVER_EMAIL = 'sender@mail5.ru'
 SENDER_PASSWORD = 'password'
