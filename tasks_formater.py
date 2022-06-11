@@ -21,9 +21,9 @@ def get_formatted_tasks(tasks: List[Task]) -> List[AssigneeTasks]:
         raise FormattingError
 
 
-def _get_overdue_tasks(tasks: List[Task], date_of_overdue: datetime = datetime.today()) -> List[Task]:
+def _get_overdue_tasks(tasks: List[Task], date_of_overdue: datetime = datetime.now()) -> List[Task]:
     """Returns overdue tasks"""
-    return list(filter(lambda x: x.due and datetime.strptime(x.due.date, '%Y-%m-%d') < date_of_overdue, tasks))
+    return list(filter(lambda x: x.due and datetime.strptime(x.due.date, '%Y-%m-%d').date() < date_of_overdue.date(), tasks))
 
 
 def _get_tasks_with_assignee(tasks: List[Task], exclude_assignee=True) -> List[Task]:
