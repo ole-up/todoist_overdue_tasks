@@ -17,7 +17,7 @@ class TasksStorage(Protocol):
 class HTMLFileTasksStorage(TasksStorage):
     """Store tasks in HTML file"""
 
-    def __init__(self, file: Path | WindowsPath):
+    def __init__(self, file: Path or WindowsPath):
         self._file = file
 
     def save(self, tasks: List[AssigneeTasks]) -> None:

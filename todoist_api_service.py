@@ -1,3 +1,6 @@
+import json
+from  typing import List
+
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Task
 
@@ -7,7 +10,7 @@ from exceptions import ApiServiceError
 api = TodoistAPI(config.API_TOKEN)
 
 
-def get_tasks() -> list[Task]:
+def get_tasks() -> List[Task]:
     """Returns tasks list"""
     try:
         tasks = api.get_tasks()

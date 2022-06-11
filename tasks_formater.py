@@ -13,7 +13,8 @@ def get_formatted_tasks(tasks: List[Task]) -> List[AssigneeTasks]:
     """Returns overdue tasks grouped by assignee and projects and sorted by priority """
     try:
         overdue_tasks = _get_overdue_tasks(tasks)
-        grouped_tasks = _grouping_tasks(overdue_tasks)
+        tasks_with_assignee = _get_tasks_with_assignee(overdue_tasks)
+        grouped_tasks = _grouping_tasks(tasks_with_assignee)
         sorted_tasks = _sorting_tasks(grouped_tasks)
         return sorted_tasks
     except Exception:
@@ -25,6 +26,11 @@ def _get_overdue_tasks(tasks: List[Task], date_of_overdue: datetime = datetime.t
     return list(filter(lambda x: x.due and datetime.strptime(x.due.date, '%Y-%m-%d') < date_of_overdue, tasks))
 
 
+def _get_tasks_with_assignee(tasks: List[Task]) -> List[Task]:
+    """Returns task with assignee"""
+    return list(filter(lambda x: x.assignee, tasks))
+
+
 def _grouping_tasks(tasks: List[Task]) -> List[AssigneeTasks]:
     """Returns tasks grouped by assignee and project"""
     assignees_tasks = []
@@ -32,10 +38,10 @@ def _grouping_tasks(tasks: List[Task]) -> List[AssigneeTasks]:
         # форматируем задачу
         formatted_task = _fortmating_Task(task)
         # добавляем отформатированную задачу в список
-        _add_task_in_assignees_tasks(formatted_task=formatted_task,
-                                     assignee_id=task.assignee,
-                                     project_id=task.project_id,
-                                     assignees_tasks=assignees_tasks)
+        assignees_tasks = _add_task_in_assignees_tasks(formatted_task=formatted_task,
+                                                       assignee_id=task.assignee,
+                                                       project_id=task.project_id,
+                                                       assignees_tasks=assignees_tasks)
     return assignees_tasks
 
 
@@ -44,10 +50,7 @@ def _add_task_in_assignees_tasks(formatted_task: FormattedTask, assignee_id, pro
     """Adds task in assignee's tasks list"""
     assignees_tasks_keys = _get_assignee_list(assignees_tasks)
     if assignee_id:
-        try:
-            assignee_name = config.ASSIGNEES[assignee_id]
-        except KeyError:
-            assignee_name = f'Неизвестный ответственный {assignee_id}'
+        assignee_name = _get_assignee_name(assignee_id)
         if assignee_name not in assignees_tasks_keys:
             project_tasks = ProjectTasks(project_name=todoist_api_service.get_project_name(project_id),
                                          tasks=[formatted_task])
@@ -55,20 +58,17 @@ def _add_task_in_assignees_tasks(formatted_task: FormattedTask, assignee_id, pro
                                            projects=[project_tasks])
             assignees_tasks.append(assignee_tasks)
             return assignees_tasks
-    else:
-        return _add_task_in_project(formatted_task=formatted_task,
-                                    assignee_id=assignee_id,
-                                    project_id=project_id,
-                                    assignees_tasks=assignees_tasks)
+        else:
+            return _add_task_in_project(formatted_task=formatted_task,
+                                        assignee_id=assignee_id,
+                                        project_id=project_id,
+                                        assignees_tasks=assignees_tasks)
 
 
 def _add_task_in_project(formatted_task: FormattedTask, assignee_id, project_id,
                          assignees_tasks: List[AssigneeTasks]) -> List[AssigneeTasks]:
     """Adds task in project's tasks list"""
-    try:
-        assignee_name = config.ASSIGNEES[assignee_id]
-    except KeyError:
-        assignee_name = f'Неизвестный исполнитель {assignee_id}'
+    assignee_name = _get_assignee_name(assignee_id)
     project_name = todoist_api_service.get_project_name(project_id)
     for assignee_tasks in assignees_tasks:
         if assignee_tasks.assignee_name == assignee_name:
@@ -80,6 +80,11 @@ def _add_task_in_project(formatted_task: FormattedTask, assignee_id, project_id,
                     project.tasks.append(formatted_task)
             break
     return assignees_tasks
+
+
+def _get_assignee_name(assignee_id: int) -> str:
+    return config.ASSIGNEES[
+        assignee_id] if assignee_id in config.ASSIGNEES.keys() else f'Неизвестный ответственный {assignee_id}'
 
 
 def _fortmating_Task(task: Task) -> FormattedTask:
@@ -108,3 +113,21 @@ def _sorting_tasks(assignees_tasks_list: List[AssigneeTasks]) -> List[AssigneeTa
                 sorted_tasks = sorted(project.tasks, key=_sort_key, reverse=True)
                 project.tasks = sorted_tasks
     return assignees_tasks_list
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+
+    from tasks import tasks
+
+    overdue_tasks = _get_overdue_tasks(tasks)
+    print("Просроченные задачи:")
+    pprint(overdue_tasks)
+    print(100 * '*')
+    print("Задачи с назначенным исполнителем:")
+    tasks_with_assignee = _get_tasks_with_assignee(overdue_tasks)
+    pprint(tasks_with_assignee)
+    print(100 * '*')
+    print("Сгруппированные задачи:")
+    grouped_task = _grouping_tasks(tasks_with_assignee)
+    pprint(grouped_task)
